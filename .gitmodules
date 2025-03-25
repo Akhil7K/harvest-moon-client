@@ -1,0 +1,3 @@
+[submodule "prisma/shared-schema"]
+	path = prisma/shared-schema
+	url = https://github.com/Akhil7K/shared-harvest-schema
