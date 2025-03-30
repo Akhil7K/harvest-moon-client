@@ -25,7 +25,7 @@ export const CardWrapper = ({
 }: CardWrapperProps) => {
     return(
         <Card className="w-96 shadow-md">
-            <CardHeader className="text-center">
+            <CardHeader className="text-center font-semibold">
                 <Header label={headerLabel} />
             </CardHeader>
             <CardContent>

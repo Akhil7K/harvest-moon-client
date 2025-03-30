@@ -124,6 +124,7 @@ const SignupForm = ()=> {
                         type="submit"
                         className="w-full"
                         disabled={isPending}
+                        variant={"harvest"}
                     >
                         Create an Account
                     </Button>

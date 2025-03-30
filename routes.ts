@@ -4,6 +4,9 @@
  * @type {string}
  */
 export const publicRoutes = [
+    "/",
+    "/all-products",
+    "/product",
     "/auth/new-verification",
     "/api/webhook",
 ];

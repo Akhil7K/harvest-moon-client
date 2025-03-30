@@ -3,15 +3,15 @@ import Image from "next/image"
 export const HarvestBrandTrust = () => {
     return (
         <div className="h-full w-full">
-            <div className="flex justify-between items-center w-full px-8">
+            <div className="flex justify-between items-center w-full h-full min-h-[200px] px-8">
                 {/* Image Logo */}
-                <div className="w-2/5 justify-items-center">
+                <div className="w-2/5 justify-items-center relative">
                     <Image
                     src={'/Rasoraj-logo.png'}
                     alt="Rasoraj: Delta's Soul on Plate"
                     width={500}
                     height={500}
-                    className="absolte"
+                    className="md:absolute md:-top-36"
                 />
                 </div>
                 <div className="h-full w-3/5 px-8 justify-items-center">

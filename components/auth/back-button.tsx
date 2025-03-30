@@ -17,7 +17,7 @@ const BackButton = ({
         <>
             <p className="text-sm text-center">
                 {note}
-                <Link href={href} className="text-purple-700/90 font-semibold mx-1 hover:text-purple-700/70 hover:underline hover:underline-offset-4 transition-all">
+                <Link href={href} className="text-red-700/90 font-semibold mx-1 hover:text-red-700/70 hover:underline hover:underline-offset-4 transition-all">
                     {label}
                 </Link>
             </p>
