@@ -19,8 +19,9 @@ export default auth((req) => {
     const isApiAuthRoute = nextUrl.pathname.startsWith(apiAuthPrefix);
     const isPublicRoute = publicRoutes.includes(nextUrl.pathname);
     const isAuthRoute = authRoutes.includes(nextUrl.pathname);
+    const isCartRoute = nextUrl.pathname.startsWith('/api/cart');
 
-    if (isApiAuthRoute) {
+    if (isApiAuthRoute || isCartRoute) {
       return;
     }
 

@@ -3,17 +3,20 @@ import { currentUser } from "@/lib/current-user";
 import { CartClient } from "./_components/cart-client";
 import { Suspense } from "react";
 import { Skeleton } from "@/components/ui/skeleton";
-import { getCartSession } from "@/lib/session";
+import { headers } from "next/headers";
+import { CartProps } from "@/types";
 
 export const dynamic = 'force-dynamic';
 export const fetchCache = 'force-no-store';
 
-async function getCart(userId?: string | null, sessionId?: string | null) {
-    if (!userId && !sessionId) return null;
+async function getCart(userId?: string | null) {
+    const headerList = headers();
+    const clientSessionId = headerList.get('x-cart-session');
+    if (!userId && !clientSessionId) return null;
 
     try {
-        return await db.cart.findFirst({
-            where: userId ? { userId } : { sessionId },
+        const cart = await db.cart.findFirst({
+            where: userId ? { userId } : { sessionId: clientSessionId },
             include: {
                 items: {
                     include: {
@@ -30,6 +33,8 @@ async function getCart(userId?: string | null, sessionId?: string | null) {
                 }
             }
         });
+
+        return cart as CartProps | null;
     } catch (error) {
         console.error("[CART_GET]", error);
         throw new Error("Failed to fetch cart");
@@ -38,8 +43,7 @@ async function getCart(userId?: string | null, sessionId?: string | null) {
 
 export default async function CartPage() {
     const user = await currentUser();
-    const sessionId = await getCartSession();
-    const initialCart = await getCart(user?.id, sessionId);
+    const initialCart = await getCart(user?.id);
 
     return (
         <div className="max-w-6xl mx-auto p-6">

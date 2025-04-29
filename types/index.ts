@@ -54,13 +54,14 @@ export interface ProductCardProps {
     stock?: number;
   }
 
-  export interface CartProps {
-    id: string;        //Cart Id
-    userId: string;
-    sessionId: string;
-  }
+export interface CartProps {
+    id: string;
+    userId: string | null;
+    sessionId: string | null;
+    items: CartItemProps[];
+}
 
-  export interface CartItemProps {
+export interface CartItemProps {
     id: string;
     quantity: number;
     variant: {
@@ -77,4 +78,4 @@ export interface ProductCardProps {
             }>
         }
     }
-  }
+}

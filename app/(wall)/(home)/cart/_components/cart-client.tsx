@@ -5,30 +5,57 @@ import { CartTable } from './cart-table';
 import { cartColumns } from './cartColumns';
 import { CartSummary } from './cart-summary';
 import { useRouter } from 'next/navigation';
-import { CartItemProps } from '@/types';
 import { Loader2 } from 'lucide-react';
 import { getClientSession } from '@/lib/clientSession';
+import { CartItemProps, CartProps } from '@/types';
+import axios from 'axios';
+
+type CartResponse = CartProps | null;
 
 interface CartClientProps {
-    initialCart: any;
+    initialCart: CartResponse;
 }
 
 export function CartClient({ initialCart }: CartClientProps) {
-    const [items, setItems] = useState(initialCart?.items || []);
+    const [items, setItems] = useState<CartItemProps[]>(initialCart?.items || []);
     const [isLoading, setIsLoading] = useState(false);
     const router = useRouter();
 
     // Initialize client session on mount
     useEffect(() => {
-        // Ensure client session exists
-        getClientSession();
-    }, []);
+        const initializeCart = async () => {
+            try {
+                const sessionId = getClientSession();
+                if (!initialCart) {
+                    const response = await axios.get('/api/cart/items', {
+                        headers: {
+                            'x-cart-session': sessionId
+                        }
+                    });
+                    const cart = response.data[0];
+                    setItems(cart?.items || []);
+                }
+            } catch (error) {
+                console.error('Failed to initialize cart:', error);
+            }
+        };
+
+        initializeCart();
+    }, [initialCart]);
 
     useEffect(() => {
         // Handle cart updates
         const handleCartUpdate = async () => {
             try {
                 setIsLoading(true);
+                const sessionId = getClientSession();
+                const response = await axios.get('/api/cart/items', {
+                    headers: {
+                        'x-cart-session': sessionId
+                    }
+                });
+                const cart = response.data[0];
+                setItems(cart?.items || []);
                 router.refresh();
             } catch (error) {
                 console.error('Failed to update cart:', error);

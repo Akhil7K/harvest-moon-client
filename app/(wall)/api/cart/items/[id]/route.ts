@@ -18,7 +18,7 @@ export async function PATCH(
         const userId = user?.id;
 
         const body = await req.json();
-        const {quantity} = body
+        const {quantity} = body;
         const id = props.params.id;
 
         if (!id || typeof quantity !== 'number' || quantity < 1) {
@@ -116,8 +116,6 @@ export async function DELETE(
             console.error('No valid session found');
             throw new Error('No valid session found');
         }
-        const user = await currentUser();
-        const userId = user?.id;
 
         const id = props.params.id;
 

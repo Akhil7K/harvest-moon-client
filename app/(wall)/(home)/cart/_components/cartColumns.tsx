@@ -79,36 +79,47 @@ export const cartColumns: ColumnDef<CartItem>[] = [
         accessorKey: "quantity",
         header: "Quantity",
         cell: ({ row }) => {
-            const [loading, setLoading] = useState(false);
-           const updateQuantity = async (newQuantity: number) => {
-            try {
-                setLoading(true);
-                await axios.patch(`/api/cart/items/${row.original.id}`,
-                    {quantity: newQuantity},
-                    {headers: {
-                        'Content-Type': 'application/json',
-                        'x-cart-session': getClientSession()
-                    }}
+            const QuantityCell =() => {
+                const [loading, setLoading] = useState(false);
+                const [quantity, setQuantity] = useState(row.original.quantity);
+
+                const updateQuantity = async (newQuantity: number) => {
+                    if (loading) return;
+                    const sessionId = getClientSession();
+                    try {
+                        setLoading(true);
+                        await axios.patch(`/api/cart/items/${row.original.id}`,
+                            {quantity: newQuantity},
+                            {headers: {
+                                'Content-Type': 'application/json',
+                                'x-cart-session': sessionId
+                            }}
+                        );
+
+                        setQuantity(newQuantity);
+                        window.dispatchEvent(new Event('cart-updated'));
+                    } catch (error) {
+                        console.error("Error updating quantity: ", error);
+                        toast.error('Failed to update quantity. Please try again');
+                        setQuantity(row.original.quantity);
+                    } finally {
+                        setLoading(false);
+                    }
+                };
+                return (
+                    <div className="flex items-center gap-2">
+                        <Button variant={'outline'} size={'sm'} disabled={loading || quantity <= 1} onClick={() => updateQuantity(quantity - 1)}>
+                            <Minus className="h-4 w-4" />
+                        </Button>
+                        <span className='font-medium'>{quantity}</span>
+                        <Button variant={'outline'} size={'sm'} disabled={loading || quantity >= 5} onClick={() => updateQuantity(quantity + 1)}>
+                            <Plus className="h-4 w-4" />
+                        </Button>
+                    </div>
                 );
-                window.dispatchEvent(new Event('cart-updated'));
-            } catch (error) {
-                console.error("Error updating quantity: ", error);
-                toast.error('Failed to update quantity. Please try again')
-            } finally {
-                setLoading(false);
             }
-           };
-           return (
-            <div className="flex items-center gap-2">
-                <Button variant={'outline'} size={'sm'} disabled={loading || row.original.quantity <= 1} onClick={() => updateQuantity(row.original.quantity - 1)}>
-                    <Minus className="h-4 w-4" />
-                </Button>
-                <span className='font-medium'>{row.original.quantity}</span>
-                <Button variant={'outline'} size={'sm'} disabled={loading || row.original.quantity >= 5} onClick={() => updateQuantity(row.original.quantity + 1)}>
-                    <Plus className="h-4 w-4" />
-                </Button>
-            </div>
-           );
+            return <QuantityCell />
+            
         },
     },
     {
