@@ -33,3 +33,8 @@ export const ResetSchema = z.object({
         message: "Email is required"
     }),
 });
+
+export const AddtoCartSchema = z.object({
+    quantity: z.number().int().positive().max(5),
+    variantId: z.string().uuid()
+});

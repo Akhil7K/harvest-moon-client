@@ -3,6 +3,9 @@
 import Link from "next/link";
 import { Logo } from "./logo";
 import { Button } from "../ui/button";
+import { UserButton } from "../auth/user-button";
+import { ShoppingBasketIcon } from "lucide-react";
+import { CartCount } from "./cart-count";
 
 export const Navbar = () => {
     return (
@@ -38,6 +41,11 @@ export const Navbar = () => {
                         My Plate
                     </Button>
                 </Link>
+                <Link href={'/cart'}>
+                    <ShoppingBasketIcon className="text-harvest-primary border-4 h-10 w-10 p-1 rounded-full border-[#c30000]" />
+                    <CartCount />
+                </Link>
+                <UserButton />
             </div>
         </div>
     )

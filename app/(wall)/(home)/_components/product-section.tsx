@@ -26,7 +26,7 @@ export const ProductSection = async () => {
                                     name={product.name}
                                     description={product.description}
                                     imageUrl={product.imageUrls[0]?.url || '/assets/fallback-product.png'}
-                                    category={product.category?.name || 'Veg'}
+                                    category={product.category || { name: 'Veg' }}
                                     weight={product.attributes[0]?.values[0] || ''}
                                     price={product.defaultVariant.price || 0}
                                     variantId={product.defaultVariant.id}

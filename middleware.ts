@@ -34,7 +34,12 @@ export default auth((req) => {
     if (!isLoggedIn && !isPublicRoute) {
       return Response.redirect(new URL("/auth/sign-in", nextUrl));
     }
-})
+
+    if (nextUrl.pathname.startsWith('/checkout')) {
+      const callbackUrl = encodeURIComponent(nextUrl.pathname);
+      return Response.redirect(new URL(`/auth/sign-in?callback=${callbackUrl}`, nextUrl));
+    }
+});
 
 export const config = {
     matcher: [

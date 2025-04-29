@@ -77,7 +77,16 @@ export const getProducts = cache(async (): Promise<Product[]> => {
             },
         });
 
-        return products as unknown as Product[]
+        return products.map(product => ({
+            ...product,
+            category: product.category ? { name: product.category.name } : null,
+            // Add temporary computed fields for ProductCardProps
+            imageUrl: product.imageUrls[0]?.url || "/default-image.jpg",
+            weight: product.attributes.find(a => a.label === 'weight')?.values[0] || "",
+        })) as Array<Product & { 
+            imageUrl: string; 
+            weight: string 
+        }>;
     } catch (error) {
         console.error("[PRODUCTS_GET]", error);
         return [];

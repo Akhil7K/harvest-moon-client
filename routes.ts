@@ -5,10 +5,14 @@
  */
 export const publicRoutes = [
     "/",
-    "/all-products",
     "/product",
+    "/cart",
     "/auth/new-verification",
     "/api/webhook",
+    "/api/cart/items",
+    '/auth/sign-in',
+    '/auth/sign-up',
+    '/api/cart/count',
 ];
 
 /**
@@ -17,8 +21,6 @@ export const publicRoutes = [
  * @type {string}
  */
 export const authRoutes = [
-    '/auth/sign-in',
-    '/auth/sign-up',
     '/auth/error',
     '/auth/reset-password',
     '/auth/new-password',

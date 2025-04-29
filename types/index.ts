@@ -47,9 +47,34 @@ export interface ProductCardProps {
     name: string;
     description: string | null;
     imageUrl: string;
-    category: string;
+    category: {name: string} | null;
     weight: string;
     price: number;
     variantId: string;
     stock?: number;
+  }
+
+  export interface CartProps {
+    id: string;        //Cart Id
+    userId: string;
+    sessionId: string;
+  }
+
+  export interface CartItemProps {
+    id: string;
+    quantity: number;
+    variant: {
+        id: string;
+        title: string;
+        price: number;
+        product: {
+            id: string;
+            name: string;
+            description: string | null;
+            imageUrls: Array<{
+                url: string;
+                position: number;
+            }>
+        }
+    }
   }
