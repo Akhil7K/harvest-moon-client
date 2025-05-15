@@ -2,25 +2,24 @@
 import { CartService } from '@/lib/cart';
 import { currentUser } from '@/lib/current-user';
 import { db } from '@/lib/db';
-import { getCartSession } from '@/lib/session';
-import { headers } from 'next/headers';
+import { cookies, headers } from 'next/headers';
 import { NextResponse } from 'next/server';
+
+const CART_SESSION_KEY = 'cart_session';
 
 export async function POST(req: Request) {
   try {
 
     const headerList = headers();
-    const clientSessionId = headerList.get("x-cart-session");
+    const clientSessionId = headerList.get("x-cart-session") || cookies().get(CART_SESSION_KEY)?.value;
+    console.log('[CART_API] Session: ', clientSessionId);
 
-    // Get cart session first
-    const serverSessionId = await getCartSession();
-3
     // Get user if logged in
     const user = await currentUser();
     const userId = user?.id;
     console.log("API received user: ", userId);
 
-    const sessionId = clientSessionId || serverSessionId
+    const sessionId = clientSessionId;
     
     console.log("API received Cart Session: ", sessionId);
 
@@ -146,10 +145,10 @@ export async function GET() {
     const clientSessionId = headerList.get("x-cart-session");
     console.log("API received client session: ", clientSessionId);
 
-    const serverSessionId = await getCartSession();
-    console.log("API received cart session: ", serverSessionId);
+    // const serverSessionId = await getCartSession();
+    // console.log("API received cart session: ", serverSessionId.id);
 
-    const sessionId = clientSessionId || serverSessionId;
+    const sessionId = clientSessionId;
 
     const user = await currentUser();
     const userId = user?.id;

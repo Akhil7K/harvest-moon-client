@@ -1,4 +1,6 @@
+import { MergeConflictStrategy } from "@/schemas";
 import { db } from "./db";
+import * as z from 'zod';
 
 export class CartService {
     // Main entry point for cart resolution among users and guests
@@ -50,8 +52,16 @@ export class CartService {
     }
 
     // Merge User Cart with Guest Cart upon login
-    async mergeCarts(userId: string, sessionId: string) {
+    async mergeCarts(userId: string, sessionId: string, strategy: z.infer<typeof MergeConflictStrategy> = 'PRIORITIZE_USER') {
         return  db.$transaction(async (tx) => {
+            console.log("Starting cart merging for: ", {userId, sessionId});
+
+            // Lock rows for update
+            await tx.$executeRaw`
+                SELECT * FROM "Cart"
+                WHERE "userId" = ${userId} OR "sessionId" = ${sessionId}
+                FOR UPDATE SKIP LOCKED
+            `;
 
             // Getting both carts
             const [guestCart, userCart] = await Promise.all([
@@ -60,53 +70,143 @@ export class CartService {
                         sessionId,
                     },
                     include: {
-                        items: true,
-                    }
+                        items: {
+                            include: {variant: true}
+                        },
+                    },
                 }),
-                tx.cart.findUnique({
+                tx.cart.findFirst({
                     where: {
                         userId,
                     },
                     include: {
-                        items: true,
+                        items: {
+                            include: {variant: true}
+                        },
                     },
                 })
             ]);
 
-            if (!guestCart) return userCart;  //No guest cart to merge
+            if (!guestCart || guestCart.userId) {
+                throw new Error('Invalid guest cart');
+            }
 
-            const mergedItems = [...(userCart?.items || [])];
+            if (!guestCart?.items.length) return userCart;  //No guest cart to merge
 
-            for (const guestItem of guestCart.items) {
-                const existingItem = mergedItems.find(
-                    item => item.variantId === guestItem.variantId
-                );
-
-                if (existingItem) {
-                    await tx.cartItem.update({
-                        where: {
-                            id: existingItem.id
-                        },
-                        data: {
-                            quantity: {
-                                increment: guestItem.quantity
-                            }
-                        }
-                    });
-                } else {
-                    if (userCart?.id) {
-                        mergedItems.push(
-                            await tx.cartItem.create({
-                                data: {
-                                    cartId: userCart.id,
-                                    variantId: guestItem.variantId,
-                                    quantity: guestItem.quantity,
-                                }
-                            })
-                        )
+            // Create or use existing user cart
+            const finalUserCart = userCart || await tx.cart.create({
+                data: {
+                    userId,
+                    expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000)
+                },
+                include: {
+                    items: {
+                        include: { variant: true }
                     }
                 }
-            }
+            });
+
+            const mergeOperations = guestCart.items.map(async (guestItem) => {
+                const existingItem = finalUserCart.items.find(
+                    item => item.variantId === guestItem.variantId
+                );
+                // Check stock availability
+                const variant = await tx.productVariant.findUnique({
+                    where: {
+                        id: guestItem.variantId
+                    },
+                    select: {
+                        stockQuantity: true,
+                        reservedQuantity: true
+                    }
+                });
+
+                const availableStock = (variant?.stockQuantity || 0) - (variant?.reservedQuantity || 0);
+
+                const maxPossible = Math.min(guestItem.quantity, availableStock);
+
+                if (maxPossible <= 0) return;
+
+                // Conflict Resolution
+                const finalQuantity = existingItem ?
+                    this.resolveConflict(
+                        existingItem.quantity,
+                        maxPossible,
+                        strategy
+                    ) : maxPossible;
+
+                await tx.cartItem.upsert({
+                    where: {
+                        cartId_variantId: {
+                            cartId: finalUserCart.id,
+                            variantId: guestItem.variantId
+                        }
+                    },
+                    create: {
+                        cartId: finalUserCart.id,
+                        variantId: guestItem.variantId,
+                        quantity: finalQuantity
+                    },
+                    update:{
+                        quantity: finalQuantity
+                    }
+                });
+                
+
+                return tx.cart.findUnique({
+                    where: {
+                        id: finalUserCart.id
+                    },
+                    include: {
+                        items: {
+                            include: {
+                                variant: {
+                                    include: {
+                                        product: {
+                                            include: {
+                                                imageUrls: true
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                });
+            });
+            await Promise.all(mergeOperations);
+
+                // Cleanup guest cart
+                try {
+                    await tx.cartItem.deleteMany({
+                        where: {cartId: guestCart.id}
+                    });
+                    await tx.cart.delete({
+                        where: {
+                            id: guestCart.id
+                        }
+                    });
+                    console.log("Guest Cart cleaned up");
+                } catch (error) {
+                    console.error('Error cleaning guest cart');
+                }
         })
     }
+
+    private resolveConflict(
+        userQty: number,
+        guestQty: number,
+        strategy: z.infer<typeof MergeConflictStrategy>
+      ) {
+        switch(strategy) {
+          case 'PRIORITIZE_USER':
+            return userQty;
+          case 'PRIORITIZE_GUEST':
+            return guestQty;
+          case 'SUM_QUANTITIES':
+            return userQty + guestQty;
+          default:
+            return Math.max(userQty, guestQty);
+        }
+      }
 }

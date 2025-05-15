@@ -7,6 +7,7 @@ import {
   authRoutes,
   publicRoutes,
  } from "@/routes";
+import { getCookie } from "./lib/clientSession";
 
 
 const { auth } = NextAuth(authConfig);
@@ -37,7 +38,9 @@ export default auth((req) => {
     }
 
     if (nextUrl.pathname.startsWith('/checkout')) {
-      const callbackUrl = encodeURIComponent(nextUrl.pathname);
+      const guestSession = getCookie('cart_session');
+      // const callbackUrl = encodeURIComponent(nextUrl.pathname);
+      const callbackUrl = encodeURIComponent(`/checkout?mergeSession=${guestSession}`);
       return Response.redirect(new URL(`/auth/sign-in?callback=${callbackUrl}`, nextUrl));
     }
 });

@@ -11,6 +11,7 @@ export const Logo = () => {
                     alt="Rasoraj Logo" 
                     width={300} 
                     height={300}
+                    priority
                 />
             </Link>
             

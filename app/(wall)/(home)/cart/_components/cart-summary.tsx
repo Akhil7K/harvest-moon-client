@@ -3,15 +3,22 @@
 import { formatPrice } from "@/lib/format-price";
 import { CartItemProps } from "@/types";
 import { Button } from "@/components/ui/button";
+import { useMemo } from "react";
+import { useCheckout } from "@/hooks/useCheckout";
+import { Loader2 } from "lucide-react";
 
 interface CartSummaryProps {
     items: CartItemProps[];
 }
 
 export const CartSummary = ({ items }: CartSummaryProps) => {
-    const subtotal = items.reduce((total, item) => {
-        return total + (item.variant.price * item.quantity);
-    }, 0);
+    const {handleCheckoutNavigation, isProcessing} = useCheckout();
+
+    const subtotal = useMemo(() => {
+        return items.reduce((total, item) => {
+            return total + (item.variant.price * item.quantity);
+        }, 0);
+    }, [items]); 
 
     return (
         <div className="mt-8 rounded-lg bg-gray-50 px-4 py-6">
@@ -27,9 +34,22 @@ export const CartSummary = ({ items }: CartSummaryProps) => {
                     variant="harvest"
                     size="lg"
                     className="w-full"
-                    disabled={items.length === 0}
+                    disabled={items.length === 0 || isProcessing}
+                    onClick={handleCheckoutNavigation}
+                    aria-label={
+                        items.length === 0
+                        ? "Cart is empty"
+                        : "Proceed to Checkout"
+                    }
                 >
-                    Proceed to Checkout
+                    {isProcessing ? (
+                        <div className="flex items-center gap-2">
+                            Processing...
+                            <Loader2 className="h-4 w-4 animate-spin" />
+                        </div>
+                    ) : (
+                        'Proceed to Checkout'
+                    )}
                 </Button>
             </div>
         </div>

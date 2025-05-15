@@ -69,9 +69,16 @@ export const ProductCard = ({
         if (isLoading) return;
 
         try {
-            setIsLoading(true);
-            console.log("Redirecting to Checkout");
-            await axios.post(`/api/checkout/`, {values});
+            // setIsLoading(true);
+            // console.log("Redirecting to Checkout");
+            // await axios.post(`/api/checkout/`, {values});
+
+            const sessionId = getClientSession();
+
+            await axios.post(`/api/checkout`, {
+                ...values,
+                sessionId
+            });
         } catch (error) {
             console.log("Action failed", error);
         } finally {

@@ -16,7 +16,7 @@ export const SessionInitializer = () => {
             } catch (error) {
                 console.error('Failed to initialize guest session:', error);
             }
-        }
+        } 
     }, [user]);
 
     return null;

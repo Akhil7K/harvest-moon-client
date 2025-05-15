@@ -85,14 +85,18 @@ export const cartColumns: ColumnDef<CartItem>[] = [
 
                 const updateQuantity = async (newQuantity: number) => {
                     if (loading) return;
-                    const sessionId = getClientSession();
+                    const sessionId = localStorage.getItem('cart_session');
+
+                    if (!sessionId) {
+                        toast.error("Invalid Session")
+                    }
                     try {
                         setLoading(true);
                         await axios.patch(`/api/cart/items/${row.original.id}`,
                             {quantity: newQuantity},
                             {headers: {
                                 'Content-Type': 'application/json',
-                                'x-cart-session': sessionId
+                                'x-cart-session': sessionId,
                             }}
                         );
 
@@ -138,9 +142,13 @@ export const cartColumns: ColumnDef<CartItem>[] = [
                 className="text-harvest-primary hover:text-harvest-primary/80"
                 onClick={async () => {
                     try {
+                        const sessionId = getClientSession();
+                        if (!sessionId) {
+                            toast.error('Invalid session');
+                        }
                         await axios.delete(`/api/cart/items/${row.original.id}`, {
                             headers: {
-                                'x-cart-session': getClientSession()
+                                'x-cart-session': sessionId
                             }
                         });
                         window.dispatchEvent(new Event('cart-updated'));

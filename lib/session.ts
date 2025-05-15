@@ -2,28 +2,46 @@ import { cookies } from 'next/headers';
 import { v4 as uuidv4 } from 'uuid';
 import { db } from '@/lib/db';
 
+const SESSION_COOKIE_NAME = 'cart_session';
 const CART_SESSION_TTL = 60 * 60 * 24 * 3; // 3 days in seconds
 
 export const getCartSession = async () => {
   try {
     const cookieStore = cookies();
-    let sessionId = cookieStore.get('cart_session')?.value;
+    let sessionId = cookieStore.get(SESSION_COOKIE_NAME)?.value;
 
-    console.log("Getting Cart Session: ", sessionId);
+    console.log("SESSION: Getting Cart Session: ", sessionId);
 
     // Validate existing session
-    if (sessionId && !validateUUID(sessionId)) {
-      console.log('Invalid session ID format:', sessionId);
-      sessionId = undefined;
-      cookieStore.delete('cart_session');
+    if (sessionId) {
+      const validSession = await db.cart.findUnique({
+        where: {
+          sessionId
+        },
+        select: {
+          expiresAt: true
+        }
+      });
+
+      if (!validSession || validSession.expiresAt < new Date()) {
+        await db.cart.deleteMany({
+          where: {
+            sessionId
+          }
+        });
+        sessionId = undefined;
+        cookieStore.delete(SESSION_COOKIE_NAME);
+      }
     }
 
     // Create new session if needed
     if (!sessionId) {
       sessionId = uuidv4();
-      cookieStore.set('cart_session', sessionId, {
+      cookieStore.set({
+        name: SESSION_COOKIE_NAME,
+        value: sessionId,
         httpOnly: true,
-        secure: process.env.NODE_ENV === "production",
+        secure: process.env.NODE_ENV === 'production',
         sameSite: 'lax',
         maxAge: CART_SESSION_TTL,
         path: '/'
@@ -35,19 +53,27 @@ export const getCartSession = async () => {
       await db.cart.create({
         data: {
           sessionId,
-          expiresAt: new Date(Date.now() + CART_SESSION_TTL * 1000)
+          expiresAt: new Date(Date.now() + CART_SESSION_TTL * 1000),
+          items: {create: []}
         }
       });
     }
-
+    console.log('Final sessionId: ', sessionId);
     return sessionId;
   } catch (error) {
     console.error("Session creation error: ", error);
-    return null;
+    throw new Error("Failed to initialize cart session");
   }
-  
 };
 
-const validateUUID = (uuid: string) => {
-  return /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(uuid);
-};
+export const validateSession = async (sessionId: string) => {
+  return db.cart.findUnique({
+    where: {
+      sessionId
+    },
+    select: {
+      id: true,
+      expiresAt: true
+    }
+  })
+}

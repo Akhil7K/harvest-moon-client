@@ -20,12 +20,18 @@ import { useState, useTransition } from "react";
 import Link from "next/link";
 import { FormSuccess } from "../form-success";
 import { FormError } from "../form-error";
+import { login } from "@/actions/auth/login";
+import {useRouter} from 'next/navigation';
+import axios from "axios";
+import { deleteCookie } from "@/lib/clientSession";
+import { DEFAULT_LOGIN_REDIRECT } from "@/routes";
 
 export const LoginForm = ()=> {
     const [showTwoFactor, setShowTwoFactor] = useState(false);
     const [error, setError] = useState<string | undefined>();
     const [success, setSuccess] = useState<string | undefined>();
     const [isPending, startTransition] = useTransition();
+    const router = useRouter();
 
     const form = useForm<z.infer<typeof LoginSchema>>({
         resolver: zodResolver(LoginSchema),
@@ -42,15 +48,42 @@ export const LoginForm = ()=> {
 
         startTransition(() => {
             login(values)
-                .then((data) => {
+                .then(async (data) => {
                     if (data?.error) {
                         form.reset();
                         setError(data.error);
                     }
 
                     if (data?.success) {
+                        // Merge guest cart after successfull login
+                        const urlParams = new URLSearchParams(window.location.search);
+                        const guestSessionId = urlParams.get('guestSession');
+
+                        if (guestSessionId) {
+                            try {
+                                await axios.post('/api/cart/merge', {
+                                    guestSessionId,
+                                    strategy: 'PRIORITIZE_USER'
+                                });
+
+                                localStorage.removeItem('cart_session');
+                                deleteCookie('guest_cart_session');
+                            } catch (error) {
+                                console.error("Merge failed: ", error);
+                            }
+                            
+                        }
                         form.reset();
                         setSuccess(data.success);
+                    }
+
+                    // Handling redirect after successful login
+                    const returnUrl = sessionStorage.getItem('returnUrl');
+
+                    if (returnUrl) {
+                        router.push(returnUrl || DEFAULT_LOGIN_REDIRECT);
+                        sessionStorage.removeItem('returnUrl');
+                        // router.push(returnUrl);
                     }
 
                     if (data?.twoFactor) {
@@ -68,6 +101,7 @@ export const LoginForm = ()=> {
         backButtonLabel="Sign up"
         backButtonHref="/auth/sign-up"
         backButtonNote="Don't have an account?"
+        showSocial
         >
             <Form {...form}>
                 <form

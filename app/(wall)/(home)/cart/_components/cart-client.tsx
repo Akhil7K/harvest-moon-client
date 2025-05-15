@@ -6,14 +6,14 @@ import { cartColumns } from './cartColumns';
 import { CartSummary } from './cart-summary';
 import { useRouter } from 'next/navigation';
 import { Loader2 } from 'lucide-react';
-import { getClientSession } from '@/lib/clientSession';
 import { CartItemProps, CartProps } from '@/types';
 import axios from 'axios';
+import { getClientSession, persistClientSession } from '@/lib/clientSession';
 
-type CartResponse = CartProps | null;
+type CartResponse = CartProps;
 
 interface CartClientProps {
-    initialCart: CartResponse;
+    initialCart: CartResponse | null;
 }
 
 export function CartClient({ initialCart }: CartClientProps) {
@@ -25,7 +25,21 @@ export function CartClient({ initialCart }: CartClientProps) {
     useEffect(() => {
         const initializeCart = async () => {
             try {
-                const sessionId = getClientSession();
+                // const response = await axios.get('/api/cart/session');
+                // const {id: sessionId} = response.data;
+
+                // // Storing in local-storage
+                // localStorage.setItem('cart_session', sessionId);
+                // console.log("CartClient - Session ID: ", sessionId);
+
+                let sessionId = getClientSession();
+                if (!sessionId) {
+                    const response = await axios.get('/api/cart/session');
+                    sessionId = response.data.sessionId;
+                    if (sessionId) {
+                        persistClientSession(sessionId);
+                    }
+                }
                 if (!initialCart) {
                     const response = await axios.get('/api/cart/items', {
                         headers: {
@@ -48,7 +62,7 @@ export function CartClient({ initialCart }: CartClientProps) {
         const handleCartUpdate = async () => {
             try {
                 setIsLoading(true);
-                const sessionId = getClientSession();
+                const sessionId = localStorage.getItem('cart_session');
                 const response = await axios.get('/api/cart/items', {
                     headers: {
                         'x-cart-session': sessionId

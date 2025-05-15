@@ -35,6 +35,7 @@ export async function GET() {
         });
 
         console.log('Found cart:', cart?.id);
+        console.log("Found Cart SessionId: ", cart?.sessionId);
 
         const totalItems = cart?.items.reduce((sum, item) => sum + item.quantity, 0) || 0;
         console.log("Cart Count API - Total item: ", totalItems);

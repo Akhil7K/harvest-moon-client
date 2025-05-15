@@ -22,8 +22,8 @@ export async function PATCH(
         const id = props.params.id;
 
         if (!id || typeof quantity !== 'number' || quantity < 1) {
-            return new NextResponse("invalid request", {status: 400})
-;        }
+            return new NextResponse("invalid request", {status: 400});
+        }
 
         const result = await db.$transaction(async(tx) => {
             // Get cart item with variant details

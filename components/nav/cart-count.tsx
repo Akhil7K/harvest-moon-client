@@ -14,11 +14,11 @@ export const CartCount = () => {
         const getCartCount = async () => {
             try {
                 // Always get session ID regardless of user state
-                const sessionId = getClientSession();
-                console.log("CartCount - using sessionId: ", sessionId);
+                const session = getClientSession();
+                console.log("CartCount - using sessionId: ", session);
                 const response = await axios.get('/api/cart/count', {
                     headers: {
-                        'X-Cart-Session': sessionId
+                        'X-Cart-Session': session || ''
                     }
                 });
 

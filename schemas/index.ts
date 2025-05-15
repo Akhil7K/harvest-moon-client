@@ -38,3 +38,27 @@ export const AddtoCartSchema = z.object({
     quantity: z.number().int().positive().max(5),
     variantId: z.string().uuid()
 });
+
+export const SessionSchema = z.object({
+    id: z.string().uuid(),
+    expiresAt: z.date(),
+    userId: z.string().nullable()
+});
+
+export const ClientSessionSchema = z.object({
+    id: z.string().uuid(),
+    expiresAt: z.date()
+});
+
+export const MergeConflictStrategy = z.enum([
+    'PRIORITIZE_USER', 
+    'SUM_QUANTITIES',
+    'PRIORITIZE_GUEST'
+]);
+
+export const MergeRequestSchema = z.object({
+    guestSessionId: z.string().uuid(),
+    strategy: z.enum([
+        'PRIORITIZE_USER', 'SUM_QUANTITIES', 'PRIORITIZE_GUEST'
+    ])
+})
