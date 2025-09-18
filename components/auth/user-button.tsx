@@ -31,7 +31,7 @@ export const UserButton = () => {
     // Handle loading state
     if (isLoading) {
         return (
-            <Skeleton className="h-10 w-10 rounded-full" />
+            <Skeleton className="h-9 w-9 rounded-full" />
         );
     }
 

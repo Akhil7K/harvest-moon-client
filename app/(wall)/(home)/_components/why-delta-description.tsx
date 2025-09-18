@@ -1,7 +1,7 @@
 export const WhyDeltaDesciprtion =() => {
     return (
         <div className="w-full h-full p-8 justify-items-center">
-            <div className="text-white text-justify tracking-wide w-[80%] text-lg">
+            <div className="text-white text-justify tracking-wide w-full lg:w-[80%] text-lg">
                 <p>
                     The Ganges Delta is predominantly covering West Bengal and Bangladesh. Being the world&apos;s largest river delta with combined waters of several river systems, it is one of the most fertile regions on the earth, thus earning the nickname the Green Delta. Covering more than one lakh square kilometers, this area provides up to three crops a year, plenty of clear water and hundreds of fishes. Thus the Bengali common dish has naturally emerged as a fish curry with vegetables.
                 </p>

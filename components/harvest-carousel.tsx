@@ -77,7 +77,7 @@ export const HarvestHeaderCarousel = ({ onSlideChange }: HarvestHeaderCarouselPr
                     {harvestCarouselItems.map((item) => (
                         <CarouselItem key={item.index}>
                             <div className="flex flex-col items-center justify-center p-4">
-                                <div className="relative w-full h-60">
+                                <div className="relative w-full h-44 lg:h-60">
                                     <Image 
                                         src={item.src}
                                         alt={item.alt}

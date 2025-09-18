@@ -11,7 +11,7 @@ export const getClientSession = () => {
     // Fallback to localStorage if cookie is not available
     const sessionId = localStorage.getItem(CART_SESSION_KEY);
 
-    return sessionId
+    return sessionId;
     
     
 } catch (error) {

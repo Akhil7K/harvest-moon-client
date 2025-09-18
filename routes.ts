@@ -13,6 +13,8 @@ export const publicRoutes = [
     '/auth/sign-in',
     '/auth/sign-up',
     '/api/cart/count',
+    '/about',
+    '/contact'
 ];
 
 /**

@@ -5,7 +5,7 @@ import Link from 'next/link';
 export const Logo = () => {
     return ( 
         <div>
-            <Link href={'/'}>
+            <Link href={'/'} className='focus:ring-transparent active:ring-transparent'>
                 <Image 
                     src={RasorajLogo} 
                     alt="Rasoraj Logo" 
@@ -14,7 +14,6 @@ export const Logo = () => {
                     priority
                 />
             </Link>
-            
         </div>
     );
 }

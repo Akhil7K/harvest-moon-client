@@ -16,9 +16,9 @@ export default {
             clientSecret: process.env.GOOGLE_CLIENT_SECRET,
             authorization: {
               params: {
-                prompt: 'select_account',
+                prompt: 'consent',
                 access_type: 'offline',
-                response_type: 'code'
+                response_type: 'code',
               }
             }
         }),
@@ -92,7 +92,11 @@ export default {
             return true;
           }
 
-          if (account?.provider !== 'credentials') return true;
+          if (account?.provider !== 'credentials') {
+            
+            
+            return true;
+          } 
 
           
     
@@ -126,14 +130,17 @@ export default {
         }
         return session;
       },
-        async jwt({token}) {
-        if (!token.sub) return token;
-  
-        const existingUser = await getUserById(token.sub);
-  
-        if (!existingUser) return token;
-        token.role = existingUser.role;
-        return token;
+        async jwt({token, account}) {
+          if (account) {
+            token.access_token = account.access_token;
+            token.expires_at = account.expires_at;
+            token.refresh_token = account.refresh_token;
+            return token;
+          } else if (token.expires_at && Date.now() < Number(token.expires_at) * 1000) {
+            return token;
+          }
+          // Optionally, you can add logic here to refresh the token or handle expired tokens.
+          return token;
         }
     },
 } satisfies NextAuthConfig;
